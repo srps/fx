@@ -6199,7 +6199,7 @@ test "app_input_runtime approval escape arrows move choices directly" {
     const alloc = std.testing.allocator;
     var app = try RoutingFakeApp.init(alloc);
     defer app.deinit();
-    try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "terminal.exec npm test" }));
+    try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "shell.run npm test" }));
 
     app.approval_prompt.decision.choice_index = 1;
     try Runtime(RoutingFakeApp).routeApprovalEscapeAction(&app, .history_up, null);
@@ -6232,7 +6232,7 @@ test "app_input_runtime approval amendment arrows edit the selected draft" {
     var app = try RoutingFakeApp.init(alloc);
     defer app.deinit();
     try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{
-        .label = "terminal.exec npm test",
+        .label = "shell.run npm test",
     }));
     try Runtime(RoutingFakeApp).handleByte(&app, '\t', 4096, 100);
     try Runtime(RoutingFakeApp).handleByte(&app, 'a', 4096, 100);
@@ -6252,7 +6252,7 @@ test "app_input_runtime routes approval amendment home end delete and word movem
     var app = try RoutingFakeApp.init(alloc);
     defer app.deinit();
     try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{
-        .label = "terminal.exec npm test",
+        .label = "shell.run npm test",
     }));
     try Runtime(RoutingFakeApp).handleByte(&app, '\t', 4096, 100);
     for ("alpha beta") |byte| try Runtime(RoutingFakeApp).handleByte(&app, byte, 4096, 100);
@@ -6274,7 +6274,7 @@ test "app_input_runtime routes focused editor aliases into approval amendment on
     try app.input_runtime.edit_state.input.appendSlice(alloc, "hidden composer");
     app.input_runtime.edit_state.cursor = app.input_runtime.edit_state.input.items.len;
     try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{
-        .label = "terminal.exec npm test",
+        .label = "shell.run npm test",
     }));
 
     try Runtime(RoutingFakeApp).handleByte(&app, '\t', 4096, 100);
@@ -7729,7 +7729,7 @@ test "app_input_runtime approval modal ignores non-modal text" {
     const alloc = std.testing.allocator;
     var app = try RoutingFakeApp.init(alloc);
     defer app.deinit();
-    try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "terminal.exec npm test" }));
+    try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "shell.run npm test" }));
 
     try feedRoutingBytes(&app, "queue approval sentinel text");
 
@@ -7768,7 +7768,7 @@ test "app_input_runtime modal controls win before ordinary modal input" {
         var app = try RoutingFakeApp.init(alloc);
         defer app.deinit();
         try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{
-            .label = "terminal.exec npm test",
+            .label = "shell.run npm test",
             .amendment_allowed = true,
         }));
 
@@ -7784,7 +7784,7 @@ test "app_input_runtime modal controls win before ordinary modal input" {
     {
         var app = try RoutingFakeApp.init(alloc);
         defer app.deinit();
-        try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "terminal.exec npm test" }));
+        try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "shell.run npm test" }));
 
         try Runtime(RoutingFakeApp).handleByte(&app, '3', 4096, 100);
 
@@ -7803,7 +7803,7 @@ test "app_input_runtime raw CSI-u digits stay isolated from approval selection" 
     for (sequences) |sequence| {
         var app = try RoutingFakeApp.init(alloc);
         defer app.deinit();
-        try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "terminal.exec npm test" }));
+        try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "shell.run npm test" }));
         app.approval_prompt.decision.choice_index = 2;
 
         try feedRoutingBytes(&app, sequence);
@@ -7920,7 +7920,7 @@ test "app_input_runtime decoded kitty Escape follows the raw Escape policy" {
         var app = try RoutingFakeApp.init(alloc);
         defer app.deinit();
         app.stream.active = true;
-        try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "terminal.exec npm test" }));
+        try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "shell.run npm test" }));
 
         try feedRoutingBytes(&app, "\x1b[27u");
 
@@ -8050,7 +8050,7 @@ test "app_input_runtime remapped ctrl+c reaches prompt cancellation" {
     {
         var app = try RoutingFakeApp.init(alloc);
         defer app.deinit();
-        try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "terminal.exec npm test" }));
+        try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "shell.run npm test" }));
 
         try feedRoutingBytes(&app, "\x1b[99;5u");
 
@@ -8260,7 +8260,7 @@ test "app_input_runtime ctrl+c drops an active approval amendment" {
     var app = try RoutingFakeApp.init(alloc);
     defer app.deinit();
     try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{
-        .label = "terminal.exec npm test",
+        .label = "shell.run npm test",
     }));
 
     try feedRoutingBytes(&app, "\tsummarize the result");
@@ -8477,7 +8477,7 @@ fn activateRoutingDecision(app: *RoutingFakeApp, kind: RoutingDecisionKind) !voi
             try app.question_prompt.syncFrom(app.alloc, &entries);
         },
         .approval => try std.testing.expect(try app.approval_prompt.syncRequest(app.alloc, .{
-            .label = "terminal.exec npm test",
+            .label = "shell.run npm test",
         })),
     }
 }
@@ -9057,7 +9057,7 @@ test "app_input_runtime decision prompt owns and discards bracketed paste" {
 
     var app = try RoutingFakeApp.init(alloc);
     defer app.deinit();
-    try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "terminal.exec npm test" }));
+    try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "shell.run npm test" }));
 
     const payload = "typing\t\r\n" ++ "\x03" ++ "\x1b[99;5u" ++ "\x1b[A" ++ "\x1b[200~";
     try feedRoutingBytes(&app, "\x1b[200~");
@@ -9118,7 +9118,7 @@ test "app_input_runtime approval amendment accepts bracketed paste" {
     const alloc = std.testing.allocator;
     var app = try RoutingFakeApp.init(alloc);
     defer app.deinit();
-    try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "terminal.exec npm test" }));
+    try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "shell.run npm test" }));
 
     try feedRoutingBytes(&app, "\t");
     try std.testing.expect(app.approval_prompt.isAmending());
@@ -9155,7 +9155,7 @@ test "app_input_runtime approval amendment rejects oversized paste visibly" {
     var app = try RoutingFakeApp.init(alloc);
     defer app.deinit();
     try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{
-        .label = "terminal.exec npm test",
+        .label = "shell.run npm test",
     }));
     try Runtime(RoutingFakeApp).handleByte(&app, '\t', 2, 100);
 
@@ -9188,7 +9188,7 @@ test "app_input_runtime keeps composer and decision input limits independent" {
 
     try std.testing.expect(try app.approval_prompt.syncRequest(
         alloc,
-        .{ .label = "terminal.exec npm test" },
+        .{ .label = "shell.run npm test" },
     ));
     try Runtime(RoutingFakeApp).handleTerminalByteWithLimits(&app, '\t', limits, 100);
     for ("xyz") |byte| {
@@ -9208,7 +9208,7 @@ test "app_input_runtime approval amendment paste finalization resets state after
     const alloc = std.testing.allocator;
     var app = try RoutingFakeApp.init(alloc);
     defer app.deinit();
-    try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "terminal.exec npm test" }));
+    try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "shell.run npm test" }));
     try feedRoutingBytes(&app, "\t");
     try std.testing.expect(app.approval_prompt.isAmending());
     try app.input_runtime.paste.buffer.ensureTotalCapacity(alloc, 1);
@@ -9281,7 +9281,7 @@ test "app_input_runtime zero-content decision paste logs once" {
 
     var app = try RoutingFakeApp.init(alloc);
     defer app.deinit();
-    try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "terminal.exec npm test" }));
+    try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "shell.run npm test" }));
 
     try feedRoutingBytes(&app, "\x1b[200~\x1b[201~");
     try std.testing.expectEqual(paste_framing.Owner.none, app.input_runtime.paste.owner);
@@ -9297,7 +9297,7 @@ test "app_input_runtime decision paste start clears pending ctrl-c and esc gestu
     const alloc = std.testing.allocator;
     var app = try RoutingFakeApp.init(alloc);
     defer app.deinit();
-    try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "terminal.exec npm test" }));
+    try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "shell.run npm test" }));
     armCtrlCExitForTest(&app.input_runtime, io_mod.milliTimestamp());
     armEscapeClearForTest(&app.input_runtime, io_mod.milliTimestamp());
     app.shell.render_requests.clearReason(.footer);
@@ -9374,7 +9374,7 @@ test "app_input_runtime rejects unsafe suffixes for every root modal paste owner
         var app = try RoutingFakeApp.init(alloc);
         defer app.deinit();
         try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{
-            .label = "terminal.exec npm test",
+            .label = "shell.run npm test",
         }));
 
         try feedRoutingBytes(&app, "\x1b[200~\x1b[201~1\r");
@@ -9388,7 +9388,7 @@ test "app_input_runtime rejects unsafe suffixes for every root modal paste owner
         var app = try RoutingFakeApp.init(alloc);
         defer app.deinit();
         try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{
-            .label = "terminal.exec npm test",
+            .label = "shell.run npm test",
         }));
         try feedRoutingBytes(&app, "\tkeep");
 
@@ -9538,7 +9538,7 @@ test "app_input_runtime bounds typed question and approval drafts with visible f
         var app = try RoutingFakeApp.init(alloc);
         defer app.deinit();
         try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{
-            .label = "terminal.exec npm test",
+            .label = "shell.run npm test",
         }));
         try Runtime(RoutingFakeApp).handleByte(&app, '\t', 2, 100);
 
@@ -9608,7 +9608,7 @@ test "app_input_runtime routes typed utf8 scalars to modal editors" {
     {
         var app = try RoutingFakeApp.init(alloc);
         defer app.deinit();
-        try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "terminal.exec npm test" }));
+        try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "shell.run npm test" }));
         try Runtime(RoutingFakeApp).handleByte(&app, '\t', 4096, 100);
 
         try feedRoutingBytes(&app, "🙂");
@@ -9622,7 +9622,7 @@ test "app_input_runtime question prompt owns paste over an approval amendment" {
     const alloc = std.testing.allocator;
     var app = try RoutingFakeApp.init(alloc);
     defer app.deinit();
-    try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "terminal.exec npm test" }));
+    try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "shell.run npm test" }));
     try feedRoutingBytes(&app, "\tkeep");
     try std.testing.expect(app.approval_prompt.isAmending());
     try std.testing.expectEqualStrings("keep", app.approval_prompt.decision.selectedDraft());
@@ -9652,7 +9652,7 @@ test "app_input_runtime routes input to the innermost active modal" {
     const alloc = std.testing.allocator;
     var app = try RoutingFakeApp.init(alloc);
     defer app.deinit();
-    try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "terminal.exec npm test" }));
+    try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "shell.run npm test" }));
 
     const opts = [_]types.QuestionOption{
         .{ .label = "Alpha", .description = null },
@@ -9687,7 +9687,7 @@ test "app_input_runtime delegates only presented child approval ctrl-x" {
     defer app.deinit();
     try std.testing.expect(try app.approval_prompt.syncRequest(
         alloc,
-        .{ .label = "terminal.exec npm test" },
+        .{ .label = "shell.run npm test" },
     ));
 
     try Runtime(RoutingFakeApp).handleByte(&app, ctrl_x_manager_byte, 4096, 100);
@@ -9703,7 +9703,7 @@ test "app_input_runtime delegates only presented child approval ctrl-x" {
 
     try std.testing.expect(try app.approval_prompt.syncRequest(
         alloc,
-        .{ .label = "terminal.exec cargo test" },
+        .{ .label = "shell.run cargo test" },
     ));
     try Runtime(RoutingFakeApp).handleByte(&app, ctrl_x_manager_byte, 4096, 100);
     try std.testing.expectEqual(@as(usize, 1), app.subagents.toggle_view_calls);
@@ -9714,7 +9714,7 @@ test "app_input_runtime active paste shields prompts from escape timeout cancell
     const alloc = std.testing.allocator;
     var app = try RoutingFakeApp.init(alloc);
     defer app.deinit();
-    try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "terminal.exec npm test" }));
+    try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "shell.run npm test" }));
 
     try feedRoutingBytes(&app, "\x1b[200~");
     try std.testing.expectEqual(paste_framing.Owner.decision_prompt, app.input_runtime.paste.owner);
@@ -9776,7 +9776,7 @@ test "app_input_runtime false paste starts leave decision prompt controls usable
     const alloc = std.testing.allocator;
     var app = try RoutingFakeApp.init(alloc);
     defer app.deinit();
-    try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "terminal.exec npm test" }));
+    try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "shell.run npm test" }));
 
     try feedRoutingBytes(&app, "\x1b[0200~");
     try std.testing.expectEqual(paste_framing.Owner.none, app.input_runtime.paste.owner);
@@ -9801,7 +9801,7 @@ test "app_input_runtime false paste starts preserve stale paste and gestures" {
     const alloc = std.testing.allocator;
     var app = try RoutingFakeApp.init(alloc);
     defer app.deinit();
-    try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "terminal.exec npm test" }));
+    try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "shell.run npm test" }));
     app.input_runtime.paste.decision_bytes = 7;
     try app.input_runtime.paste.buffer.appendSlice(alloc, "old");
     armCtrlCExitForTest(&app.input_runtime, 123);
@@ -10098,7 +10098,7 @@ test "app_input_runtime ctrl-o toggles full transcript while arrows preserve det
         var approval_app = try RoutingFakeApp.init(alloc);
         defer approval_app.deinit();
         approval_app.shell.stdout_file = sink;
-        try std.testing.expect(try approval_app.approval_prompt.syncRequest(alloc, .{ .label = "terminal.exec npm test" }));
+        try std.testing.expect(try approval_app.approval_prompt.syncRequest(alloc, .{ .label = "shell.run npm test" }));
 
         try Runtime(RoutingFakeApp).handleByte(&approval_app, 15, 4096, 100);
         try std.testing.expect(!approval_app.terminal.fullTranscriptScreenActive());
@@ -10389,7 +10389,7 @@ test "app_input_runtime approval prompt blocks full transcript key interception"
     var app = try RoutingFakeApp.init(alloc);
     defer app.deinit();
     activateFullTranscriptForRoutingTest(&app);
-    try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "terminal.exec npm test" }));
+    try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "shell.run npm test" }));
     app.shell.full_transcript.scroll_rows = 10;
 
     try feedRoutingBytes(&app, "\x1b[5~");
@@ -10458,7 +10458,7 @@ test "app_input_runtime new paste traces and clears stale inactive state" {
 
     var app = try RoutingFakeApp.init(alloc);
     defer app.deinit();
-    try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "terminal.exec npm test" }));
+    try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "shell.run npm test" }));
     app.input_runtime.paste.decision_bytes = 7;
     try app.input_runtime.paste.buffer.appendSlice(alloc, "old");
 
@@ -10483,7 +10483,7 @@ test "app_input_runtime composer paste stays composer owned when prompt appears"
     try feedRoutingBytes(&app, "\x1b[200~");
     try std.testing.expectEqual(paste_framing.Owner.composer, app.input_runtime.paste.owner);
     try feedRoutingBytes(&app, "hi");
-    try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "terminal.exec npm test" }));
+    try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "shell.run npm test" }));
     try feedRoutingBytes(&app, "\x1b[201~");
 
     try std.testing.expectEqual(paste_framing.Owner.none, app.input_runtime.paste.owner);
@@ -10526,7 +10526,7 @@ test "app_input_runtime modal disappearance keeps decision-owned paste pinned" {
 
     var app = try RoutingFakeApp.init(alloc);
     defer app.deinit();
-    try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "terminal.exec npm test" }));
+    try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "shell.run npm test" }));
 
     try feedRoutingBytes(&app, "\x1b[200~");
     app.approval_prompt.clear(app.alloc);
@@ -10704,7 +10704,7 @@ test "app_input_runtime expired incomplete control sequence preserves approval" 
     const alloc = std.testing.allocator;
     var app = try RoutingFakeApp.init(alloc);
     defer app.deinit();
-    try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "terminal.exec npm test" }));
+    try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "shell.run npm test" }));
     app.terminal_input_runtime.terminal_action_decoder.stage = 3;
     app.terminal_input_runtime.terminal_action_decoder.param = 20;
     app.terminal_input_runtime.terminal_action_decoder.param2 = 2;
@@ -10764,7 +10764,7 @@ test "app_input_runtime expired mouse prefixes discard their tails without cance
         var app = try RoutingFakeApp.init(alloc);
         defer app.deinit();
         app.stream.active = true;
-        try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "terminal.exec npm test" }));
+        try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "shell.run npm test" }));
 
         try feedRoutingBytes(&app, case.prefix);
         app.terminal_input_runtime.terminal_action_decoder.started_ms = 0;
@@ -10788,7 +10788,7 @@ test "app_input_runtime tail-less expired mouse recovery releases quietly" {
         var app = try RoutingFakeApp.init(alloc);
         defer app.deinit();
         app.stream.active = true;
-        try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "terminal.exec npm test" }));
+        try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "shell.run npm test" }));
 
         try feedRoutingBytes(&app, prefix);
         app.terminal_input_runtime.terminal_action_decoder.started_ms = 0;
@@ -10811,7 +10811,7 @@ test "app_input_runtime fresh Escape restarts expired mouse recovery before canc
         var app = try RoutingFakeApp.init(alloc);
         defer app.deinit();
         app.stream.active = true;
-        try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "terminal.exec npm test" }));
+        try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "shell.run npm test" }));
 
         try feedRoutingBytes(&app, prefix);
         app.terminal_input_runtime.terminal_action_decoder.started_ms = 0;
@@ -10833,7 +10833,7 @@ test "app_input_runtime fresh escape rearms generic decoder before paste start" 
     const alloc = std.testing.allocator;
     var app = try RoutingFakeApp.init(alloc);
     defer app.deinit();
-    try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "terminal.exec npm test" }));
+    try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{ .label = "shell.run npm test" }));
     app.terminal_input_runtime.terminal_action_decoder.stage = 3;
     app.terminal_input_runtime.terminal_action_decoder.param = 20;
     app.terminal_input_runtime.terminal_action_decoder.param2 = 2;
@@ -10940,7 +10940,7 @@ test "approval cancellation uses one worker-owned terminal transition" {
     defer app.deinit();
     try std.testing.expect(try app.approval_prompt.syncRequest(
         alloc,
-        .{ .label = "terminal.exec npm test" },
+        .{ .label = "shell.run npm test" },
     ));
 
     try Runtime(FakeApprovalCancelApp).cancelApprovalOperation(&app);
@@ -11007,7 +11007,7 @@ test "bare escape during approval uses worker-owned cancellation" {
     defer app.deinit();
     try std.testing.expect(try app.approval_prompt.syncRequest(
         alloc,
-        .{ .label = "terminal.exec npm test" },
+        .{ .label = "shell.run npm test" },
     ));
     app.terminal_input_runtime.terminal_action_decoder.stage = 1;
     app.terminal_input_runtime.terminal_action_decoder.cancel_pending = true;
@@ -11357,7 +11357,7 @@ test "approval submission transfers feedback to the worker without a local card"
     var app = try RoutingFakeApp.init(alloc);
     defer app.deinit();
     try std.testing.expect(try app.approval_prompt.syncRequest(alloc, .{
-        .label = "terminal.exec printf done",
+        .label = "shell.run printf done",
     }));
     try Runtime(RoutingFakeApp).handleByte(&app, '\t', 4096, 100);
     for ("summarize the output") |byte| {
@@ -11562,7 +11562,7 @@ test "bare escape trace captures approval interrupt context" {
     defer app.deinit();
     try std.testing.expect(try app.approval_prompt.syncRequest(
         alloc,
-        .{ .label = "terminal.exec npm test" },
+        .{ .label = "shell.run npm test" },
     ));
     app.terminal_input_runtime.terminal_action_decoder.stage = 1;
     app.terminal_input_runtime.terminal_action_decoder.cancel_pending = true;
