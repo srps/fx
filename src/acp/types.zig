@@ -132,15 +132,23 @@ pub fn writeAgentMessageChunk(w: *std.Io.Writer, text: []const u8) !void {
     try w.writeAll("}}");
 }
 
+pub fn writeAgentThoughtChunk(w: *std.Io.Writer, text: []const u8) !void {
+    try w.writeAll("{\"sessionUpdate\":\"agent_thought_chunk\",\"content\":{\"type\":\"text\",\"text\":");
+    try writeJsonStr(text, w);
+    try w.writeAll("}}");
+}
+
 pub fn writeUserMessageChunk(w: *std.Io.Writer, text: []const u8) !void {
     try w.writeAll("{\"sessionUpdate\":\"user_message_chunk\",\"content\":{\"type\":\"text\",\"text\":");
     try writeJsonStr(text, w);
     try w.writeAll("}}");
 }
 
-pub fn writeToolCall(w: *std.Io.Writer, tool_call_id: []const u8, title: []const u8, kind: ToolCallKind, status: ToolCallStatus) !void {
+pub fn writeToolCall(w: *std.Io.Writer, tool_call_id: []const u8, tool_name: []const u8, title: []const u8, kind: ToolCallKind, status: ToolCallStatus) !void {
     try w.writeAll("{\"sessionUpdate\":\"tool_call\",\"toolCallId\":");
     try writeJsonStr(tool_call_id, w);
+    try w.writeAll(",\"toolName\":");
+    try writeJsonStr(tool_name, w);
     try w.writeAll(",\"title\":");
     try writeJsonStr(title, w);
     try w.writeAll(",\"kind\":");
@@ -197,6 +205,32 @@ pub fn writePromptResponse(w: *std.Io.Writer, reason: StopReason) !void {
     try w.writeAll("}");
 }
 
+pub fn writePromptResponseWithUsage(
+    w: *std.Io.Writer,
+    reason: StopReason,
+    usage: core_types.Usage,
+) !void {
+    try w.writeAll("{\"stopReason\":");
+    try writeJsonStr(reason.jsonString(), w);
+    try w.writeAll(",\"usage\":{");
+    var first = true;
+    inline for (.{
+        .{ "inputTokens", usage.input_tokens },
+        .{ "outputTokens", usage.output_tokens },
+        .{ "cacheReadTokens", usage.cache_read_tokens },
+        .{ "cacheWriteTokens", usage.cache_write_tokens },
+        .{ "reasoningTokens", usage.reasoning_tokens },
+    }) |field| {
+        if (field[1]) |value| {
+            if (!first) try w.writeByte(',');
+            first = false;
+            try writeJsonStr(field[0], w);
+            try w.print(":{d}", .{value});
+        }
+    }
+    try w.writeAll("}}");
+}
+
 pub fn writeAvailableCommandsUpdate(w: *std.Io.Writer, commands_json: []const u8) !void {
     try w.writeAll("{\"sessionUpdate\":\"available_commands_update\",\"availableCommands\":");
     try w.writeAll(commands_json);
@@ -216,7 +250,7 @@ test "writeToolCall produces valid json" {
     const alloc = std.testing.allocator;
     var out: std.Io.Writer.Allocating = .init(alloc);
     defer out.deinit();
-    try writeToolCall(&out.writer, "call_001", "Reading file", .read, .pending);
+    try writeToolCall(&out.writer, "call_001", "read_file", "Reading file", .read, .pending);
     try std.testing.expect(std.mem.find(u8, out.writer.buffered(), "\"toolCallId\":\"call_001\"") != null);
     try std.testing.expect(std.mem.find(u8, out.writer.buffered(), "\"kind\":\"read\"") != null);
 }
