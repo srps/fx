@@ -2706,7 +2706,6 @@ fn projectProviderToolCalls(
     for (history) |turn| {
         const execution: types.ExecutionMemory = switch (turn) {
             .assistant => |entry| entry.execution,
-            .background_command => |entry| entry.execution,
             .interrupted => |entry| entry.execution,
             .compacted_summary => continue,
         };
