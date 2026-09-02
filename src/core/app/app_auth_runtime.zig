@@ -420,6 +420,11 @@ pub fn Runtime(comptime App: type) type {
                     defer owned.deinit(app.alloc);
                     switch (owned) {
                         .vercel => |*selection| {
+                            // With at most one team the sign-in card has nothing
+                            // left to show; close it before the credential load
+                            // (and its model catalog warmup) so it does not sit
+                            // on screen in its reset state meanwhile.
+                            if (selection.teams.items.len <= 1) app.auth.closePicker(app.alloc);
                             if (!try selectCredentialSource(app, .fx_login)) {
                                 _ = app.auth.popPickerStage(app.alloc);
                                 try writeAuthNotice(app, .{
@@ -430,17 +435,17 @@ pub fn Runtime(comptime App: type) type {
                                 return;
                             }
                             rememberCredentialSource(app, .fx_login);
-
-                            if (selection.teams.items.len > 0) {
-                                app.auth.openTeamPicker(app.alloc, selection);
-                            } else {
-                                app.auth.closePicker(app.alloc);
-                            }
                             try writeAuthNotice(app, .{
                                 .topic = "auth",
                                 .tone = .neutral,
                                 .body = "Signed in to Vercel.",
                             });
+
+                            switch (selection.teams.items.len) {
+                                0 => {},
+                                1 => try adoptOnlyTeam(app, selection),
+                                else => app.auth.openTeamPicker(app.alloc, selection),
+                            }
                         },
                         .chatgpt => {
                             try finishSubscriptionSignIn(app, .codex);
@@ -453,6 +458,34 @@ pub fn Runtime(comptime App: type) type {
                     }
                 },
             }
+        }
+
+        /// Mirrors `fx login`, which picks the only team without asking.
+        fn adoptOnlyTeam(app: *App, selection: anytype) !void {
+            const team = selection.teams.items[0];
+            var selected_team = selection.select(app.alloc, 0) catch |err| {
+                debug_trace.logf("auth", "only team adopt failed err={s}", .{@errorName(err)});
+                try writeAuthNotice(app, .{
+                    .topic = "auth",
+                    .tone = .warning,
+                    .body = "Signed in, but the Vercel team could not be saved. Choose it from /setup.",
+                });
+                return;
+            };
+            defer selected_team.deinit(app.alloc);
+
+            applyCredentialChange(app, app.auth.adoptSelectedTeam(app.alloc, &selected_team));
+            const body = try std.fmt.allocPrint(
+                app.alloc,
+                "Using Vercel team {s} ({s}).",
+                .{ team.name, team.slug },
+            );
+            defer app.alloc.free(body);
+            try writeAuthNotice(app, .{
+                .topic = "auth",
+                .tone = .neutral,
+                .body = body,
+            });
         }
 
         fn finishSubscriptionSignIn(
@@ -1672,7 +1705,7 @@ const TestAuth = struct {
         return &self.team_selection;
     }
 
-    fn adoptSelectedTeam(self: *TestAuth, _: std.mem.Allocator, _: *TestSelectedTeam) bool {
+    fn adoptSelectedTeam(self: *TestAuth, _: std.mem.Allocator, _: anytype) bool {
         self.selected_team_adopted = true;
         return true;
     }
