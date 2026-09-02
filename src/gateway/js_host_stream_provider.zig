@@ -1,3 +1,4 @@
+const std = @import("std");
 const stream_provider = @import("../core/agent/stream_provider.zig");
 const host_stream_provider = @import("host_stream_provider.zig");
 const builtin_gateway = @import("../builtins/gateway.zig");
@@ -22,6 +23,9 @@ const provider_context = host_stream_provider.initContext(builtin_gateway.buildA
     .status_fn = status,
     .next_fn = next,
     .close_fn = close,
+    // The JavaScript imports report pending synchronously. Yield through WASI
+    // between polls so the host event loop can advance fetch callbacks.
+    .poll_pace_ns = 10 * std.time.ns_per_ms,
 });
 
 pub fn provider() stream_provider.Provider {

@@ -14,6 +14,7 @@ pub const Transport = struct {
     status_fn: *const fn (?*anyopaque, i32, *u16) i32,
     next_fn: *const fn (?*anyopaque, i32, []u8) i32,
     close_fn: *const fn (?*anyopaque, i32) void,
+    poll_pace_ns: u64 = 0,
 
     fn open(self: Transport, method: []const u8, url: []const u8, headers: []const u8, body: []const u8) !i32 {
         return self.open_fn(self.context, method, url, headers, body);
@@ -29,6 +30,10 @@ pub const Transport = struct {
 
     fn close(self: Transport, handle: i32) void {
         self.close_fn(self.context, handle);
+    }
+
+    fn pace(self: Transport) void {
+        if (self.poll_pace_ns > 0) io_mod.sleep(self.poll_pace_ns);
     }
 };
 
@@ -110,6 +115,7 @@ fn stream(raw: ?*anyopaque, alloc: Allocator, request: stream_provider.ModelRequ
         if (status_result == 1) break;
         if (status_result == -2) return error.Cancelled;
         if (status_result < 0) return error.HostStreamFailed;
+        transport.pace();
         try pulse(request.cooperative_pulse);
     }
 
@@ -220,6 +226,7 @@ fn readBody(alloc: Allocator, transport: Transport, handle: i32, cancel_flag: *s
         if (cancel_flag.load(.seq_cst)) return error.Cancelled;
         const count = transport.next(handle, &chunk);
         if (count == -3) {
+            transport.pace();
             try pulse(cooperative_pulse);
             continue;
         }
@@ -296,6 +303,7 @@ const HostStreamReader = struct {
             if (self.cancel_flag.load(.seq_cst)) return self.abortRead();
             const count = self.transport.next(self.handle, dest);
             if (count == -3) {
+                self.transport.pace();
                 if (self.cooperative_pulse != null) {
                     self.pulseAt(std.Io.Clock.Timestamp.now(io_mod.getIo(), .awake)) catch return error.ReadFailed;
                 }
