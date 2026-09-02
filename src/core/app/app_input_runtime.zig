@@ -211,6 +211,11 @@ fn validateExplicitModelSelection(selection: ExplicitModelSelection, capabilitie
     return .{ .selection = selection };
 }
 
+fn authPickerInputEnabled(comptime App: type) bool {
+    return runtime_profile.allows(App, .native_auth) or
+        runtime_profile.allows(App, .js_host_auth);
+}
+
 pub fn Runtime(comptime App: type) type {
     return struct {
         const history_rt = input_history_runtime.HistoryRuntime(App);
@@ -1002,7 +1007,7 @@ pub fn Runtime(comptime App: type) type {
                 return;
             }
 
-            if (comptime runtime_profile.allows(App, .native_auth)) {
+            if (comptime authPickerInputEnabled(App)) {
                 if (try app_auth_runtime.Runtime(App).routeAuthPickerByte(app, byte)) return;
             }
             if (try full_transcript_rt.routeByte(app, byte)) return;
@@ -1080,7 +1085,7 @@ pub fn Runtime(comptime App: type) type {
             if (try full_transcript_rt.routeAction(app, resolved)) return .done;
 
             if (resolved == .paste_start) {
-                if (comptime runtime_profile.allows(App, .native_auth) and
+                if (comptime authPickerInputEnabled(App) and
                     @hasDecl(@TypeOf(app.auth), "signInCodeEntryActive"))
                 {
                     if (app.auth.signInCodeEntryActive()) {

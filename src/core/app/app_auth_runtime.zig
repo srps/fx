@@ -373,6 +373,7 @@ pub fn Runtime(comptime App: type) type {
                     return true;
                 }
             }
+            if (comptime !runtime_profile.allows(App, .native_auth)) return false;
             if (!app.auth.apiKeyEntryActive()) return false;
             switch (byte) {
                 3, 4 => _ = app.auth.popPickerStage(app.alloc),
